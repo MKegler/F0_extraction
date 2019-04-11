@@ -1,6 +1,7 @@
 function F0 = extractFW(speechfile)
 
 %% read audio file
+% If sampled at 48k, resample to 44.1kHz
 
 [y,Fs] = audioread(speechfile);
 if Fs == 48000
@@ -8,9 +9,6 @@ fprintf('Resampling to 44100 Hz!\n')
 y = resample(y, 441, 480);
 Fs = 44100;
 end
-
-% For testing purposes
-% y = [y(1:1*Fs); y(end-1*Fs:end)];
 
 %% get rid of digital zeros at beginning and end of file. Only channel 1 is analysed (mono)...
 ... y must be coloumn vector
@@ -28,23 +26,23 @@ X = X(begin:last);
 
 clear begin last
 
-% resampling
-times = 5; %resampling tot times (decreasing the vector tot times) 5 is used when Fs = 44100
-X = resample(X,1,times); %resampling audio at around 8kHz
+%% Resampling
+downsample_times = 5; %resampling tot times (decreasing the vector tot times) 5 is used when Fs = 44100
+X = resample(X,1,downsample_times); %resampling audio at around 8kHz
 if size(startPiece,1) > 0
-startPiece = resample(startPiece,1,times);
+startPiece = resample(startPiece,1,downsample_times);
 end
 if size(finalPiece,1) > 0
-finalPiece = resample(finalPiece,1,times);
+finalPiece = resample(finalPiece,1,downsample_times);
 end
-Fs = Fs/(times);
+Fs = Fs/(downsample_times);
 
 n = size(X,1);
 t = n/Fs;       % time
 h = t/n;       % step size
 D = 0:h:t-h;    % domain (time vector)
 
-clear times
+%% Filtering
 
 X = Data_Filtering_1500HzLowPass_8kHzFs(X);
 
@@ -59,6 +57,7 @@ n = size(X,1);
 t = n/Fs;       % new time
 totalTime = t;
 
+%% Thresholding
 %envelope threshhold for silence removal
 
 frame = 10; % in ms
@@ -129,7 +128,6 @@ pos = 1; i = 1;
         i = i + 1;
     end
 
-
 F0New = OriginalF0New;
 TotF0Auto = F0Auto;
 
@@ -142,8 +140,7 @@ hold off
 
 clear p A yy maxlag r F0 f0 R F0Smooth F0resampled pos OriginalF0New F0New dummyMat frame frame_length i m nsample T B
 
-%splitter
-
+%% Splitter
 
 i = 1;
 z = 1;
@@ -179,7 +176,7 @@ TimeFrameStartEnd = [TimeFrameStartEnd; ((begin/Fs)-h), (i/Fs)];
 
 clear begin i z
 
-%Analyser
+%% Analyser
 
 i=1;
 
@@ -212,14 +209,14 @@ fprintf('piece %d of %d done\n',i,length(piecesX));
 
 end
 
-%builder
+%% builder
 
 % Adding the previously removed silent parts
 F0 = [piecesF0{:}];
 F0 = [startPiece; F0'; finalPiece];
 
 % Padding mismatched lengths with zeros
-y1 = resample(y,1,5);
+y1 = resample(y,1,downsample_times);
 diff_len = abs(size(y1, 1) - size(F0,1));
 F0 = [F0; zeros(diff_len,1)];
 crcorr = xcorr(F0, y1);
