@@ -1,8 +1,7 @@
 clear all
 close all
 
-% fnames = dir('./SoundFiles/*.wav');
-fnames = dir('./SoundFiles/story.wav');
+fnames = dir('./SoundFiles/*.wav');
 SavePath = char(fullfile('./FWs'));
 
 for fi = 1:size(fnames,1)

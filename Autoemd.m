@@ -15,7 +15,7 @@
 %
 % Modified from: Ivan Magrin-Chagnolleau  <ivan@ieee.org>
 % 
-
+%
 
 function imf = Autoemd(x);
 

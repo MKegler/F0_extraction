@@ -1,11 +1,17 @@
-function F0 = extractFW(speechfile)
+function F0 = extractFW(speechfile_in)
 
 %% read audio file
 % If sampled at 48k, resample to 44.1kHz
 
-[y,Fs] = audioread(speechfile);
+[y,Fs] = audioread(speechfile_in);
+
+if size(y,2) > 1
+fprintf('Detected more than 1 channel. Converting to mono!\n')
+y = sum(y,2)/2;
+end
+
 if Fs == 48000
-fprintf('Resampling to 44100 Hz!\n')
+fprintf('Resampling from 48000 Hz to 44100 Hz!\n')
 y = resample(y, 441, 480);
 Fs = 44100;
 end
@@ -84,7 +90,7 @@ maxlag = round(Fs/50); % F0 is greater than 50Hz => 20ms maxlag
 
 [r] = spCorr(Xenv, Fs, maxlag);
 [f0] = spPitchCorr(r, Fs);
-[F0, T, R] = spPitchTrackCorr(Xenv, Fs, 50, 49, maxlag, 1);
+[F0, T, R] = spPitchTrackCorr(Xenv, Fs, 50, 49, maxlag, 0);
 
 %%
 F0Smooth = spline(T,[0, F0, 0],D);
@@ -131,12 +137,12 @@ pos = 1; i = 1;
 F0New = OriginalF0New;
 TotF0Auto = F0Auto;
 
-hold on
-plot(D,TotF0Auto,'r','linew',2);
-legend('F0 pitch track','F0 pitch track kept');
-xlabel('Time (s)');
-ylabel('Frequency (Hz)');
-hold off
+% hold on
+% plot(D,TotF0Auto,'r','linew',2);
+% legend('F0 pitch track','F0 pitch track kept');
+% xlabel('Time (s)');
+% ylabel('Frequency (Hz)');
+% hold off
 
 clear p A yy maxlag r F0 f0 R F0Smooth F0resampled pos OriginalF0New F0New dummyMat frame frame_length i m nsample T B
 
@@ -224,12 +230,16 @@ zero_lag = median([1:size(crcorr,1)]);
 [vmax, amax] = max(crcorr);
 fprintf('Latency: %d samples\n',amax-zero_lag) 
 
-% H1 = [startPiece, piecesH1{:}, finalPiece];
-% 
-% H2 = [startPiece, piecesH2{:}, finalPiece];
-% 
-% H3 = [startPiece, piecesH3{:}, finalPiece];
-% 
-% H4 = [startPiece, piecesH4{:}, finalPiece];
+H1 = [startPiece, piecesH1{:}, finalPiece];
+
+H2 = [startPiece, piecesH2{:}, finalPiece];
+
+H3 = [startPiece, piecesH3{:}, finalPiece];
+
+H4 = [startPiece, piecesH4{:}, finalPiece];
+
+% save(speechfile_out, 'F0')
+
+exitcode = 0;
 
 
