@@ -15,8 +15,9 @@ F0 = extractFW(speechfile);
 savename = strcat(fnames(fi).name(1:end-4), '_F0.mat');
 fullFileName = fullfile(SavePath(1,:), savename);
 disp(fullFileName)
-save (fullFileName, 'F0');
+fs = 8820;
+save (fullFileName, 'F0', 'fs');
 
-clear F0
+clear F0 fs
 
 end
