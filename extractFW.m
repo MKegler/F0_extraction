@@ -1,5 +1,9 @@
 function F0 = extractFW(speechfile_in)
 
+% Note: For best results use float mono .wav files sampled at 44100 Hz.
+% If you spot a bug or any sort of misbehaviour, please open an issue on GitHub.
+% https://github.com/MKegler/F0_extraction
+
 %% read audio file
 % If sampled at 48k, resample to 44.1kHz
 
@@ -21,7 +25,7 @@ end
 
 X = y(:,1);
 
-fprintf('Removing silence in the beggining and the end\n')
+fprintf('Removing silence at the beggining and the end (if any)\n')
 begin = find(X,1,'first');
 last = find(X,1,'last');
 
@@ -225,18 +229,18 @@ F0 = [startPiece; F0'; finalPiece];
 y1 = resample(y,1,downsample_times);
 diff_len = abs(size(y1, 1) - size(F0,1));
 F0 = [F0; zeros(diff_len,1)];
+
+% Compute cross correlation to check for latency
 crcorr = xcorr(F0, y1);
 zero_lag = median([1:size(crcorr,1)]);
 [vmax, amax] = max(crcorr);
 fprintf('Latency: %d samples\n',amax-zero_lag) 
 
-H1 = [startPiece, piecesH1{:}, finalPiece];
-
-H2 = [startPiece, piecesH2{:}, finalPiece];
-
-H3 = [startPiece, piecesH3{:}, finalPiece];
-
-H4 = [startPiece, piecesH4{:}, finalPiece];
+% Harmonics
+% H1 = [startPiece, [piecesH1{:}]', finalPiece];
+% H2 = [startPiece, [piecesH2{:}]', finalPiece];
+% H3 = [startPiece, [piecesH3{:}]', finalPiece];
+% H4 = [startPiece, [piecesH4{:}]', finalPiece];
 
 % save(speechfile_out, 'F0')
 
